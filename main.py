@@ -11,7 +11,7 @@ np.random.seed(43)
 noise_level = 0.05
 
 # Specify the desired number of synthetic rows
-num_synthetic_rows = 1000
+num_synthetic_rows = 500
 
 # Helper function to add noise to numerical columns
 def add_noise(column):
@@ -41,4 +41,4 @@ for _ in range(num_synthetic_rows):
     synthetic_data = synthetic_data.append(synthetic_row, ignore_index=True)
 
 # Save the synthetic dataset to a new file
-synthetic_data.to_csv('synthetic_data.csv', index=False)
+synthetic_data.to_csv('synthetic_data_500.csv', index=False)
