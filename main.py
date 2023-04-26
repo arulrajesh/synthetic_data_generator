@@ -5,40 +5,29 @@ import numpy as np
 data = pd.read_csv('your_dataset.csv')
 
 # Set a random seed for reproducibility
-np.random.seed(43)
-
-# Define the noise level (e.g., 0.05 = 5% of the range of each numerical column)
-noise_level = 0.05
+np.random.seed(42)
 
 # Specify the desired number of synthetic rows
 num_synthetic_rows = 500
 
-# Helper function to add noise to numerical columns
-def add_noise(column):
-    column_range = np.abs(column.max() - column.min())
-    if column_range < np.finfo(np.float64).max:
-        noise = np.random.uniform(-column_range * noise_level, column_range * noise_level, column.shape)
-        return column + noise
-    else:
-        return column
+# Generate synthetic numerical columns
+def generate_synthetic_numerical(column):
+    mean_val = column.mean()
+    std_val = column.std()
+    return np.random.normal(mean_val, std_val, num_synthetic_rows)
+
+# Generate synthetic categorical columns
+def generate_synthetic_categorical(column):
+    return column.sample(num_synthetic_rows, replace=True).reset_index(drop=True)
 
 # Generate the specified number of synthetic rows
-synthetic_data = pd.DataFrame(columns=data.columns)
+numerical_columns = data.select_dtypes(include=[np.number]).columns
+categorical_columns = data.select_dtypes(exclude=[np.number]).columns
 
-for _ in range(num_synthetic_rows):
-    random_row = data.sample()
-    
-    # Apply noise to numerical columns
-    numerical_columns = random_row.select_dtypes(include=[np.number])
-    numerical_columns = numerical_columns.astype(np.float64)  # Convert to float64 to avoid overflow
-    numerical_columns = numerical_columns.apply(add_noise)
-    
-    # Sample categorical columns
-    categorical_columns = random_row.select_dtypes(exclude=[np.number])
-    
-    # Combine the processed numerical and categorical columns
-    synthetic_row = pd.concat([numerical_columns, categorical_columns], axis=1)
-    synthetic_data = synthetic_data.append(synthetic_row, ignore_index=True)
+synthetic_numerical_data = pd.DataFrame({col: generate_synthetic_numerical(data[col]) for col in numerical_columns})
+synthetic_categorical_data = pd.DataFrame({col: generate_synthetic_categorical(data[col]) for col in categorical_columns})
+
+synthetic_data = pd.concat([synthetic_numerical_data, synthetic_categorical_data], axis=1)
 
 # Save the synthetic dataset to a new file
-synthetic_data.to_csv('synthetic_data_500.csv', index=False)
+synthetic_data.to_csv('synthetic_data_with_strings.csv', index=False)
